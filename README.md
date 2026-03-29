@@ -72,6 +72,26 @@ Both files live in `.claude/` in your project root — commit them to git if you
 
 ---
 
+## Pair with code-review-graph
+
+project-journal handles the *why*. [code-review-graph](https://github.com/tirth8205/code-review-graph) handles the *where*.
+
+```
+project-journal   → decisions, warnings, state, discoveries  (human knowledge)
+code-review-graph → blast radius, callers, dependencies       (structural knowledge)
+```
+
+Install both, then add to your global `~/.claude/CLAUDE.md`:
+
+```
+Before reading files for any non-trivial task, call get_review_context_tool.
+At session start, read .claude/HANDOFF.md if it exists (/orient).
+```
+
+Now every Claude session starts oriented and reads only what matters.
+
+---
+
 ## Requirements
 
 - [Claude Code](https://docs.anthropic.com/claude/claude-code)
