@@ -1,10 +1,11 @@
 ---
 name: brief
-version: 1.0.0
+version: 1.1.0
 description: |
   Synthesize the project journal and key files into a HANDOFF.md document.
   Run this after a significant session to leave a clean briefing for the next
-  conversation. /orient reads what /brief writes.
+  conversation. If a follow-on directive is supplied, continue into that work
+  after writing the handoff. /orient reads what /brief writes.
 user-invocable: true
 allowed-tools:
   - Bash
@@ -17,6 +18,10 @@ allowed-tools:
 # /brief
 
 Read the project journal and key files. Synthesize them into `.claude/HANDOFF.md` — a dense, honest briefing document designed to get any developer (or Claude) fully oriented in under 2 minutes.
+
+## Invocation contract
+
+Preserve and inspect all user-authored text after `/brief` as a possible follow-on directive. If one is present, write the handoff first, confirm it, and then immediately carry out the directive. Do not stop at the confirmation or ask a generic follow-up question. Treat the directive as the user's next requested task, subject to the normal authorization, safety, planning, and review rules.
 
 ## Steps
 
@@ -34,6 +39,7 @@ Read the following, in order, skipping any that don't exist:
 - `.claude/journal.md`
 
 **Project identity:**
+- `AGENTS.md`
 - `PRODUCT.md`
 - `README.md`
 - `CLAUDE.md`
@@ -41,16 +47,20 @@ Read the following, in order, skipping any that don't exist:
 **Current state:**
 - `TODOS.md`
 - `CHANGELOG.md`
-- `package.json` or `Cargo.toml` or `pyproject.toml` (whichever exists — just name and version)
+- The relevant project manifest(s), such as `package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `pom.xml`, `*.csproj`, or `Gemfile` — identify the project name and version when available. In a monorepo, note the workspace and inspect the most relevant package(s).
 
 **Architecture signals:**
-- Glob `src/**/*.ts` or `src/**/*.tsx` or `lib/**/*.rb` — read file names only, not contents, to understand the shape of the codebase
-- Read up to 3 files that seem most central (e.g. `App.tsx`, `src/lib/csv-generator.ts`, main entry point)
+- Inspect the top-level source layout and use the repository's actual language conventions (`src`, `app`, `lib`, `cmd`, `internal`, and similar). Read file names only at this stage, not every source file, to understand the shape of the codebase.
+- Read up to 3 files that seem most central, such as the main entry point, application bootstrap, domain/service module, or package-level README.
 
-**Spec files:**
-- Glob `spec/*.md` — read any that exist
+**Specs and project documentation:**
+- Read focused files under `spec/` or `docs/` when they contain product, API, architecture, or operational contracts. Do not crawl an entire documentation tree.
 
 Do not read every file. Read enough to produce an accurate briefing.
+
+If the journal or another expected source is absent, say so in the handoff and distinguish observed facts from unknowns. Do not invent project state, decisions, warnings, or counts.
+
+When journal entries conflict, preserve the timestamps and surface the conflict unless a later entry clearly supersedes the earlier one. Treat decisions and warnings as active only when the journal supports that status; do not silently convert old entries into current truth.
 
 ### 3. Write HANDOFF.md
 
@@ -72,6 +82,10 @@ Use this exact structure:
 ## Current state
 
 {Bullet list. What is actually built and working. What is scaffolded but not complete. What is planned but not started. Be honest — "source files written, Expo scaffold not yet run" is more useful than "in progress".}
+
+## Context quality
+
+{State which important sources were available, which were missing, and whether any current-state claims are inferred rather than directly verified. Use `High`, `Medium`, or `Low` confidence only when the evidence supports it.}
 
 ## Load-bearing decisions
 
