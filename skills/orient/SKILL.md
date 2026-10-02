@@ -1,10 +1,11 @@
 ---
 name: orient
-version: 1.0.0
+version: 1.1.0
 description: |
   Read the project handoff document and deliver a spoken briefing.
   Run this at the start of any new session to reload context without
-  crawling the codebase. Pairs with /log (capture) and /brief (synthesize).
+  crawling the codebase. If a follow-on directive is supplied, continue into
+  that work after orienting. Pairs with /log (capture) and /brief (synthesize).
 user-invocable: true
 allowed-tools:
   - Bash
@@ -15,6 +16,15 @@ allowed-tools:
 # /orient
 
 Read `.claude/HANDOFF.md` and deliver a spoken briefing. Get fully oriented in under 2 minutes. No codebase crawling required.
+
+## Invocation contract
+
+Preserve and inspect all user-authored text after `/orient` as a possible follow-on directive. This includes wording such as `and then execute ROADMAP.md` or `then fix the failing test`.
+
+- If a follow-on directive is present, deliver the briefing and then immediately carry out that directive. Do not end by asking what the user wants to work on.
+- Treat the directive as the user's next requested task, subject to the normal authorization, safety, planning, and review rules. If it names a plan or roadmap, use the applicable plan-execution workflow before implementing it.
+- If the directive is ambiguous in a way that materially affects the work, ask only the smallest necessary clarification after the briefing.
+- If no follow-on directive is present, end with `What are we working on today?`.
 
 ## Steps
 
@@ -31,6 +41,8 @@ Try in order:
 2. `{PROJECT_ROOT}/.claude/journal.md` — fallback if no HANDOFF exists
 3. If neither exists: tell the user "No project context found. Use /log to start capturing decisions and /brief to generate a handoff document."
 
+If context is missing but a follow-on directive is present, report the missing context briefly and continue with the directive when it can be completed safely without it.
+
 ### 3. Deliver the briefing
 
 Speak directly. No headers. No bullet lists. Conversational but dense. Cover:
@@ -40,8 +52,9 @@ Speak directly. No headers. No bullet lists. Conversational but dense. Cover:
 3. **The load-bearing decisions** — say each one plainly. These are the things that would cause problems if violated.
 4. **The active warnings** — the landmines. Say them clearly.
 5. **Where to start** — tell me the 2-3 files I should open first if I'm about to write code
+6. **Context quality** — surface any stale, missing, contradictory, or explicitly inferred information recorded in the handoff.
 
-End with: "What are we working on today?"
+When no follow-on directive was supplied, end with: "What are we working on today?"
 
 ## Tone
 
@@ -60,7 +73,7 @@ Sound like a senior engineer on the project who just walked back from a two-week
 
 ## If HANDOFF.md is stale or missing
 
-If HANDOFF.md exists but is more than 7 days old (check the "Last updated" line), note it:
+If HANDOFF.md exists but is more than 7 days old, note it. Prefer the `Last updated` line; if it is missing or not parseable, use the file modification time. If neither date is available, say that freshness is unknown:
 > "Note: this handoff is from {date} — {N} days ago. Consider running /brief to refresh it before we go deep."
 
 If only journal.md exists (no HANDOFF.md), synthesize the briefing directly from journal entries and note:

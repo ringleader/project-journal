@@ -38,10 +38,21 @@ Reads the journal + key project files. Writes `.claude/HANDOFF.md` — a dense, 
 - Load-bearing decisions
 - Active warnings / landmines
 - Discoveries
+- Context quality: missing, inferred, stale, or conflicting source material
 - Where to start reading the code
 - Recent log entries
 
 Run this at the end of any significant session, or any time the project state changes meaningfully.
+
+Both `/brief` and `/orient` accept a follow-on directive. The briefing or handoff
+still happens first, then the requested work begins:
+
+```
+/orient and then execute ROADMAP.md
+/brief then run the test suite
+```
+
+If no follow-on directive is supplied, `/orient` ends with its normal question.
 
 ---
 
@@ -54,6 +65,11 @@ Run this at the end of any significant session, or any time the project state ch
 Reads `HANDOFF.md` and delivers a spoken briefing. Gets you (and Claude) fully oriented in under 2 minutes without crawling the codebase.
 
 If `HANDOFF.md` is stale (>7 days), it says so. If only a raw journal exists, it briefs from that and suggests running `/brief`.
+
+When freshness cannot be determined, `/orient` says so rather than implying the
+handoff is current. `/brief` records missing sources, inferred claims, and
+conflicting journal entries so the next session can tell what is known versus
+assumed.
 
 ---
 
@@ -69,6 +85,26 @@ The journal (`.claude/journal.md`) is append-only. Never edited. Source of truth
 The handoff (`.claude/HANDOFF.md`) is synthesized. Overwritten by each `/brief` run.
 
 Both files live in `.claude/` in your project root — commit them to git if you want teammates to benefit.
+
+---
+
+## Pair with code-review-graph
+
+project-journal handles the *why*. [code-review-graph](https://github.com/tirth8205/code-review-graph) handles the *where*.
+
+```
+project-journal   → decisions, warnings, state, discoveries  (human knowledge)
+code-review-graph → blast radius, callers, dependencies       (structural knowledge)
+```
+
+Install both, then add to your global `~/.claude/CLAUDE.md`:
+
+```
+Before reading files for any non-trivial task, call get_review_context_tool.
+At session start, read .claude/HANDOFF.md if it exists (/orient).
+```
+
+Now every Claude session starts oriented and reads only what matters.
 
 ---
 
